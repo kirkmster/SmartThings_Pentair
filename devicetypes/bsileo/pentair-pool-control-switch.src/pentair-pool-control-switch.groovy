@@ -65,31 +65,33 @@ def parse(String description) {
 }
 
 def onConfirmed() {
-    //log.debug("CONF ${device} turned on")
+    log.debug("PCS:CONF ${device} turned on")
 	sendEvent(name: "switch", value: "on", displayed:true)    
 }
 
 def offConfirmed() {
-	//log.debug("CONF ${device} turned off")
+	log.debug("PCS:CONF ${device} turned off")
 	sendEvent(name: "switch", value: "off", displayed:true)  
 }
 
 def on() {
+	log.debug("PCS:on")
 	parent.childOn(device.deviceNetworkId)
     sendEvent(name: "switch", value: "turningOn", displayed:false,isStateChange:false)    
 }
 
 def off() {
-	parent.childOff(device.deviceNetworkId)
+	log.debug("PCS:off")
+    parent.childOff(device.deviceNetworkId)
     sendEvent(name: "switch", value: "turningOff", displayed:false,isStateChange:false)
 }
 
 def setFriendlyName(name) {
-   //log.debug("Set FName to ${name}")
+   log.debug("PCS:Set FName to ${name}")
    sendEvent(name: "friendlyName", value: name, displayed:false)
 }
 
 def setCircuitFunction(name) {
-   //log.debug("Set CircuitFunction to ${name}")
+   log.debug("PCS:Set CircuitFunction to ${name}")
    sendEvent(name: "circuitFunction", value: name, displayed:false)
 }
