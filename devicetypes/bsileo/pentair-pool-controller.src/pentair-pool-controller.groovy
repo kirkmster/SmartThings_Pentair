@@ -448,14 +448,14 @@ def parse(String description) {
   //log.debug "msg.JSON.Temp: ${msg.json.temperature}"
   //log.debug "msg.JSON.Chem: ${msg.json.intellichem}"
   if (msg.json) {
-      if (msg.json.temperature != null) {parseTemps(msg.json.temperature)} else {log.debug("no Temps in msg")}
-      if (msg.json.circuit != null){ parseCircuits(msg.json.circuit)} else {log.debug("no Circuits in msg")}
-      if (msg.json.time != null) {parseTime(msg.json.time)} else {log.debug("no Time in msg")}
-      if (msg.json.schedule != null) {parseSchedule(msg.json.schedule)} else {log.debug("no Schedule in msg")}
-      if (msg.json.pump != null) {parsePump(msg.json.pump)} else {log.debug("no Pumps in msg")}
-      if (msg.json.valve != null) {parseValve(msg.json.valve)} else {log.debug("no Valve in msg")}     
-      if (msg.json.chlorinator != null) {parseChlorinator(msg.json.chlorinator)} else {log.debug("no Chlor in msg")}
-      if (msg.json.intellichem != null) {parseIntellichem(msg.json.intellichem)} else {log.debug("no Chem in msg")}
+      if (msg.json.temperature != null) {parseTemps(msg.json.temperature)} //else {log.debug("no Temps in msg")}
+      if (msg.json.circuit != null){ parseCircuits(msg.json.circuit)} //else {log.debug("no Circuits in msg")}
+      if (msg.json.time != null) {parseTime(msg.json.time)} //else {log.debug("no Time in msg")}
+      if (msg.json.schedule != null) {parseSchedule(msg.json.schedule)} //else {log.debug("no Schedule in msg")}
+      if (msg.json.pump != null) {parsePump(msg.json.pump)} //else {log.debug("no Pumps in msg")}
+      if (msg.json.valve != null) {parseValve(msg.json.valve)} //else {log.debug("no Valve in msg")}     
+      if (msg.json.chlorinator != null) {parseChlorinator(msg.json.chlorinator)} //else {log.debug("no Chlor in msg")}
+      if (msg.json.intellichem != null) {parseIntellichem(msg.json.intellichem)} //else {log.debug("no Chem in msg")}
   }
   else {
      log.debug "No JSON In response MSG: ${msg}"
@@ -463,20 +463,20 @@ def parse(String description) {
 }
 
 def parseTime(msg) {
-	log.info("Parse Time: ${msg}")
+	//log.info("Parse Time: ${msg}")
 }
 def parsePump(msg) {
-	log.info("Parse Schedule: ${msg}")
+	//log.info("Parse Schedule: ${msg}")
 }
 def parseSchedule(msg) {
-	log.info("Parse Schedule: ${msg}")
+	//log.info("Parse Schedule: ${msg}")
 }
 def parseValve(msg) {
-	log.info("Parse Valve: ${msg}")
+	//log.info("Parse Valve: ${msg}")
     sendEvent(name: "valve", value: msg.valves)            
 }
 def parseIntellichem(msg) {
-	log.info("Parse Intellichem: ${msg}")
+	//log.info("Parse Intellichem: ${msg}")
     childDevices.find({it.deviceNetworkId == "poolIntellichem"})?.parse(msg)
 }
  
@@ -573,7 +573,7 @@ def getChildDNI(name) {
 }
 
 def parseTemps(msg) {
-    log.info("Parse Temps ${msg}")
+    //log.info("Parse Temps ${msg}")
     def ph=childDevices.find({it.deviceNetworkId == getChildDNI("poolHeat")})
     def sh=childDevices.find({it.deviceNetworkId == getChildDNI("spaHeat")})
     def at = childDevices.find({it.deviceNetworkId == getChildDNI("airTemp")})
@@ -614,7 +614,7 @@ def parseTemps(msg) {
 }
 
 def parseChlorinator(msg) {
-	log.info('Parse Chlor')
+	//log.info('Parse Chlor')
     childDevices.find({it.deviceNetworkId == getChildDNI("poolChlorinator")})?.parse(msg)
 }
 
