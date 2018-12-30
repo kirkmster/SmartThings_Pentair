@@ -189,14 +189,16 @@ def configure() {
 }
 
 def installed() {
+    log.debug "Executing 'installed()'"
 	manageChildren()    
 }
 
 def updated() {
+  log.debug "Executing 'updated()'"
   manageChildren()
   if (!state.updatedLastRanAt || now() >= state.updatedLastRanAt + 5000) {
     state.updatedLastRanAt = now()
-    log.debug "Executing 'updated()'"
+    
     runIn(3, "updateDeviceNetworkID")
   } else {
     log.trace "updated(): Ran within last 5 seconds so aborting."
@@ -326,7 +328,8 @@ def makeLightCircuit(circuitID) {
 def makeIntellibriteLightCircuit(circuitID,instance) {
 	def hub = location.hubs[0]
     def lCircuits = parent.state.circuitData
-    def lightInfo = lCircuits[circuitID]
+    def lightInfo = lCircuits
+    [circuitID]
     def auxname = "IB${instance}-Main"        
     def auxLabel = "${device.displayName} (${lightInfo.name})"        
     try {
@@ -403,25 +406,33 @@ def manageFeatureCircuits() {
     nLCircuits.each {i,k ->
     	def cData = parent.state.circuitData[i.toString()]
         if (cData.friendlyName == "NOT USED") return        
-        def auxname = "circuit${i}"        
-        def auxLabel = "${device.displayName} (${cData.friendlyName})"        
+        def auxname = "circuit${i}"
+       // log.debug "auxname = ${auxname}"
+        def auxLabel = "${device.displayName} (${cData.friendlyName})"
+       // log.debug "auxlabel = ${auxLabel}"
         try {
-            def auxButton = childDevices.find({it.deviceNetworkId == getChildDNI(auxname)})
+        	def dni = getChildDNI(auxname)
+            def auxButton = childDevices.find({it.deviceNetworkId == dni})
+            log.debug "auxname = ${auxname}, auxLabel = ${auxLabel}, auxbutton = ${auxButton}, dni = ${dni}"
             if (!auxButton) {
             	log.info "Create Aux Circuit switch ${auxLabel} Named=${auxname}" 
                 auxButton = addChildDevice("bsileo","Pentair Pool Control Switch", getChildDNI(auxname), hub.id, 
                                            [completedSetup: true, label: auxLabel , isComponent:false, componentName: auxname, componentLabel: auxLabel, 
                                            data: [type:cData.circuitFunction]
                                            ])
-                log.debug "Success - Created Aux switch ${i}" 
+                log.debug "Success - Created Aux switch ${i}, auxname = ${auxname}, auxLabel = ${auxLabel}, auxbutton = ${auxButton}" 
             }
             else {
-                log.info "Found existing Aux Switch ${i} - No Updates Supported" 
+                log.info "Found existing Aux Switch ${i} - No Updates Supported, auxname = ${auxname}, auxLabel = ${auxLabel}, auxbutton = ${auxButton}" 
             }
         }
         catch(physicalgraph.app.exception.UnknownDeviceTypeException e)
         {
             log.debug "Error! " + e                                                                
+        }
+        catch(Exception ex)
+        {
+            log.debug "Misc Error! " + ex                                                                
         }
     }
 }
@@ -433,6 +444,7 @@ def refresh() {
 }
 
 def poll() {
+  log.info "Poll Request Received"
   sendEthernet("/all")
 }
 
@@ -482,10 +494,12 @@ def parseIntellichem(msg) {
  
 
 def parseCircuits(msg) {   
-	log.info("Parse Circuits: ${msg}")
+	//log.info("Parse Circuits: ${msg}")
     msg.each {
+		 log.debug "Checking key ${it.key}"
+         // Child not found PATIO LTS
          def child = getChildCircuit(it.key)
-         //log.debug "CIR JSON:${it.key}==${it.value}::${child}"
+         log.debug "CIR JSON:${it.key}==${it.value}::${child}"
          if (child) {
             def stat = it.value.status ? it.value.status : 0         
             def status = stat == 0 ? "off" : "on"
@@ -526,10 +540,13 @@ def parseCircuits(msg) {
 }
 
 def getChildCircuit(id) {
+
 	// get the circuit device given the ID number only (e.g. 1,2,3,4,5,6)
     //log.debug "CHECK getChildCircuit:${id}"
-	def children = getChildDevices()
-    def cname = 'circuit' + id
+	//def children = getChildDevices()
+    //log.debug "children = ${children}
+    def cname = "circuit${id}"     
+    //def cname = 'circuit' + id
     def instance = state.intellibriteInstances[id]
     if (instance) {    	
     	cname = "IB${instance}-Main"
@@ -538,17 +555,56 @@ def getChildCircuit(id) {
 	def dni = getChildDNI(cname)
     //return childDevices.find {it.deviceNetworkId == dni}
     
+    //listChildDevices()
+    //log.debug "Child Devices = ${childDevices}, dni = ${dni}"
+    def device = myFindChildDevice(dni)
+    return device
+    //return childDevices.find({it.deviceNetworkId == getChildDNI(cname)})
+    /*
     def theChild
     children.each { child ->
     	//log.debug "CHECK Child for :${dni}==${child}::" + child.deviceNetworkId
+        //log.debug "child.deviceNetworkId = ${child.deviceNetworkId}, dni = ${dni}"
         if (child.deviceNetworkId == dni) { 
           //log.debug "HIT Child for :${id}==${child}"
           theChild = child          
         }
     }
     return theChild
-    
+    */
 }
+
+def listChildDevices() {
+
+def children = getChildDevices()
+
+log.debug "device has ${children.size()} children"
+children.each { child ->
+	//log.debug "child = ${child}"
+    log.debug "child ${child.displayName} has deviceNetworkId ${child.deviceNetworkId}"
+}
+}
+
+def myFindChildDevice(dni) {
+
+def children = getChildDevices()
+
+log.debug "device has ${children.size()} children"
+def theChild
+children.each { child ->
+     if (child.deviceNetworkId == dni) { 
+          log.debug "HIT Child for :${dni}==${child}"
+          theChild = child          
+    }
+}
+if (!theChild) {
+   //log.debug "Not Found for dni = ${dni}"
+   def devices = listChildDevices()
+   log.debug "Not Found for dni = ${dni}, devices = ${devices}"
+}
+return theChild
+}
+
 
 def getPoolPumpChild() {
 	return childDevices.find({it.deviceNetworkId == getChildDNI("poolPump")})
